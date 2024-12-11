@@ -1,0 +1,114 @@
+
+Create database JavaQuanLyDatVeXemPhim
+-- Bảng users
+CREATE TABLE [users] (
+    [user_id] INT PRIMARY KEY IDENTITY(1, 1),
+    [username] NVARCHAR(50) NOT NULL UNIQUE,
+    [password] NVARCHAR(MAX) NOT NULL,
+    [avatar] NVARCHAR(MAX),
+    [fullname] NVARCHAR(100),
+    [birthday] DATE,
+    [gender] INT,
+    [email] NVARCHAR(100) NOT NULL UNIQUE,
+    [city] NVARCHAR(50),
+    [phone] NVARCHAR(15),
+    [point] INT DEFAULT 0,
+    [role] NVARCHAR(20) CHECK ([role] IN ('Customer', 'Staff', 'Manager', 'Admin')) NOT NULL,
+    [is_deleted] BIT DEFAULT 0 -- Xóa mềm
+);
+GO
+
+-- Bảng rooms
+CREATE TABLE [rooms] (
+    [room_id] INT PRIMARY KEY IDENTITY(1, 1),
+    [room_name] NVARCHAR(50) NOT NULL,
+    [room_type] NVARCHAR(50) NOT NULL,
+    [is_deleted] BIT DEFAULT 0 -- Xóa mềm
+);
+GO
+
+-- Bảng movies
+CREATE TABLE [movies] (
+    [movie_id] INT PRIMARY KEY IDENTITY(1, 1),
+    [movie_name] NVARCHAR(100) NOT NULL,
+    [movie_description] NVARCHAR(MAX),
+    [movie_trailer] NVARCHAR(MAX),
+    [movie_cens] NVARCHAR(10),
+    [movie_genres] NVARCHAR(100),
+    [movie_release] DATE,
+    [movie_length] INT,
+    [movie_poster] NVARCHAR(MAX),
+    [is_deleted] BIT DEFAULT 0 -- Xóa mềm
+);
+GO
+
+-- Bảng schedule
+CREATE TABLE [schedule] (
+    [schedule_id] INT PRIMARY KEY IDENTITY(1, 1),
+    [room_id] INT NOT NULL,
+    [movie_id] INT NOT NULL,
+    [schedule_date] DATE NOT NULL,
+    [schedule_start] TIME NOT NULL,
+    [schedule_end] TIME NOT NULL,
+    [is_deleted] BIT DEFAULT 0, -- Xóa mềm
+    FOREIGN KEY ([movie_id]) REFERENCES [movies] ([movie_id]),
+    FOREIGN KEY ([room_id]) REFERENCES [rooms] ([room_id])
+);
+GO
+
+-- Bảng seats
+CREATE TABLE [seats] (
+    [seat_id] INT PRIMARY KEY IDENTITY(1, 1),
+    [seat_type] INT NOT NULL,
+    [room_id] INT NOT NULL,
+    [row] NVARCHAR(10),
+    [number] INT,
+    [seat_status] INT NOT NULL CHECK ([seat_status] IN (0, 1)),
+    [is_deleted] BIT DEFAULT 0, -- Xóa mềm
+    FOREIGN KEY ([room_id]) REFERENCES [rooms] ([room_id])
+);
+GO
+
+-- Bảng bookings
+CREATE TABLE [bookings] (
+    [booking_id] INT PRIMARY KEY IDENTITY(1, 1),
+    [user_id] INT NOT NULL,
+    [schedule_id] INT NOT NULL,
+    [booking_date] DATETIME DEFAULT GETDATE(),
+    [amount] FLOAT NOT NULL,
+    [payment_method] NVARCHAR(50),
+    [is_deleted] BIT DEFAULT 0,
+    FOREIGN KEY ([user_id]) REFERENCES [users] ([user_id]),
+    FOREIGN KEY ([schedule_id]) REFERENCES [schedule] ([schedule_id])
+);
+GO
+
+-- Bảng booking_details
+CREATE TABLE [booking_details] (
+    [booking_detail_id] INT PRIMARY KEY IDENTITY(1, 1),
+    [booking_id] INT NOT NULL,
+    [seat_id] INT NOT NULL,
+    [price] FLOAT NOT NULL,
+    FOREIGN KEY ([booking_id]) REFERENCES [bookings] ([booking_id]),
+    FOREIGN KEY ([seat_id]) REFERENCES [seats] ([seat_id])
+);
+GO
+
+-- Bảng foods
+
+CREATE TABLE [food_booking] (
+    [foodbooking_id] INT PRIMARY KEY IDENTITY(1, 1),
+    [booking_id] INT NOT NULL,           -- Liên kết với bảng bookings để xác định giao dịch
+    [user_id] INT NOT NULL,
+    [food_name] NVARCHAR(100) NOT NULL, -- Tên món ăn
+    [total_price] FLOAT NOT NULL,       -- Giá của món ăn tại thời điểm đặt
+    [quantity] INT NOT NULL,             -- Số lượng món ăn được đặt
+    [description] NVARCHAR(MAX),         -- Mô tả món ăn
+    [is_deleted] BIT DEFAULT 0,          -- Xóa mềm
+    [booking_date] DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY ([user_id]) REFERENCES [users] ([user_id]),
+    FOREIGN KEY ([booking_id]) REFERENCES [bookings] ([booking_id])
+);
+GO
+
+
